@@ -4,7 +4,7 @@
 #include <imgui.h>
 #include <stdint.h>
 
-const char kWindowTitle[] = "LE2B_27_ヤマダ_ナオ___確認課題";
+const char kWindowTitle[] = "LE2B_27_ヤマダ_ナオ_2_2_確認課題";
 
 const float kWindowWidth = 1280.0f;
 const float kWindowHeight = 720.0f;
