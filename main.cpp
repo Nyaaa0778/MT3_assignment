@@ -4,7 +4,7 @@
 #include <imgui.h>
 #include <stdint.h>
 
-const char kWindowTitle[] = "LE2B_27_ヤマダ_ナオ_2_4_確認課題";
+const char kWindowTitle[] = "LE2B_27_ヤマダ_ナオ_2_5_確認課題";
 
 const float kWindowWidth = 1280.0f;
 const float kWindowHeight = 720.0f;
@@ -30,15 +30,6 @@ struct Camera {
   Vector3 scale;
   Vector3 rotate;
   Vector3 translate;
-};
-
-struct Segment {
-  Vector3 origin; // 始点
-  Vector3 diff;   // 終点への差分ベクトル
-};
-
-struct Triangle {
-  Vector3 vertices[3];
 };
 
 /// <summary>
@@ -539,104 +530,6 @@ void UpdateCameraControl(Camera &camera, const char *keys, int wheel,
     camera.scale.z = 0.120f;
 }
 
-void DrawTriangle(const Triangle &triangle,
-                  const Matrix4x4 &viewProjectionMatrix,
-                  const Matrix4x4 &viewportMatrix, uint32_t color) {
-  // スクリーン座標格納用
-  Vector3 screenVertices[3];
-
-  // 各頂点について
-  for (int i = 0; i < 3; ++i) {
-    // 1) ワールド空間→ビュー射影行列でクリップ空間へ
-    Vector4 clip = Transform4(triangle.vertices[i], viewProjectionMatrix);
-
-    // 2) W で割って NDC へ
-    if (clip.w != 0.0f) {
-      Vector3 ndc = ToNDC(clip);
-
-      // 3) ビューポート変換でスクリーン座標へ
-      screenVertices[i] = Transform(ndc, viewportMatrix);
-    } else {
-      // w が 0 のときは適当に 0 に（描画しないなどの処理を入れても OK）
-      screenVertices[i] = {0.0f, 0.0f, 0.0f};
-    }
-  }
-
-  // Novice の三角形描画（ワイヤーフレーム）
-  Novice::DrawTriangle(static_cast<int>(screenVertices[0].x),
-                       static_cast<int>(screenVertices[0].y),
-                       static_cast<int>(screenVertices[1].x),
-                       static_cast<int>(screenVertices[1].y),
-                       static_cast<int>(screenVertices[2].x),
-                       static_cast<int>(screenVertices[2].y), color,
-                       kFillModeWireFrame);
-}
-
-bool IsCollision(const Triangle &triangle, const Segment &segment) {
-  const float kEpsilon = 1e-6f;
-
-  // 線分の始点と方向ベクトルを用意
-  const Vector3 &orig = segment.origin;
-  Vector3 dir = {segment.diff.x - orig.x, segment.diff.y - orig.y,
-                 segment.diff.z - orig.z};
-
-  // 三角形の頂点を取り出し、辺ベクトルを作る
-  const Vector3 &v0 = triangle.vertices[0];
-  const Vector3 &v1 = triangle.vertices[1];
-  const Vector3 &v2 = triangle.vertices[2];
-  Vector3 edge1 = {v1.x - v0.x, v1.y - v0.y, v1.z - v0.z};
-  Vector3 edge2 = {v2.x - v0.x, v2.y - v0.y, v2.z - v0.z};
-
-  // 三角形平面の法線を計算
-  Vector3 normal = Cross(edge1, edge2);
-
-  // 平面との交点パラメータ t を求める
-  float denom = Dot(normal, dir);
-  if (std::fabs(denom) < kEpsilon) {
-    // 平行 or ほぼ平行 → 当たらない
-    return false;
-  }
-
-  float t =
-      Dot(normal, Vector3{v0.x - orig.x, v0.y - orig.y, v0.z - orig.z}) / denom;
-  // 線分なので 0 ≤ t ≤ 1 の範囲外なら当たらない
-  if (t < 0.0f || t > 1.0f) {
-    return false;
-  }
-
-  // 衝突点を計算
-  Vector3 p = {orig.x + dir.x * t, orig.y + dir.y * t, orig.z + dir.z * t};
-
-  // 各辺と (頂点→p) のクロス積を計算
-  // cross1: 辺 v0→v1, vec v0→p
-  Vector3 cross1 = Cross(Vector3{v1.x - v0.x, v1.y - v0.y, v1.z - v0.z},
-                         Vector3{p.x - v0.x, p.y - v0.y, p.z - v0.z});
-  // cross2: 辺 v1→v2, vec v1→p
-  Vector3 cross2 = Cross(Vector3{v2.x - v1.x, v2.y - v1.y, v2.z - v1.z},
-                         Vector3{p.x - v1.x, p.y - v1.y, p.z - v1.z});
-  // cross3: 辺 v2→v0, vec v2→p
-  Vector3 cross3 = Cross(Vector3{v0.x - v2.x, v0.y - v2.y, v0.z - v2.z},
-                         Vector3{p.x - v2.x, p.y - v2.y, p.z - v2.z});
-
-  // 全てのクロス積が法線と同じ方向（内積>0）なら p は三角形内部
-  if (Dot(cross1, normal) < 0.0f) {
-    return false;
-  }
-
-  if (Dot(cross2, normal) < 0.0f) {
-    return false;
-  }
-
-  if (Dot(cross3, normal) < 0.0f) {
-    return false;
-  }
-
-  return true;
-}
-
-const Vector3 kLocalVertices[3] = {
-    {0.0f, 1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}};
-
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -663,8 +556,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   Vector3 rotate{0.0f, 0.0f, 0.0f};
   Vector3 translate{0.0f, 0.0f, 0.0f};
 
-  Segment segment{{-2.0f, -1.0f, 0.0f}, {3.0f, 2.0f, 2.0f}};
-
   // ウィンドウの×ボタンが押されるまでループ
   while (Novice::ProcessMessage() == 0) {
     // フレームの開始
@@ -679,9 +570,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     ///
 
     ImGui::Begin("Window");
-
-    ImGui::DragFloat3("Segment.Origin", &segment.origin.x, 0.01f);
-    ImGui::DragFloat3("Segment.Diff", &segment.diff.x, 0.01f);
 
     ImGui::End();
 
@@ -703,19 +591,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     Matrix4x4 viewportMatrix = MakeViewportMatrix(
         0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-    Triangle triangle = {kLocalVertices[0], kLocalVertices[1],
-                         kLocalVertices[2]};
-
-    Vector4 start = Transform4(segment.origin, viewProjectionMatrix);
-    Vector4 end =
-        Transform4(Add(segment.origin, segment.diff), viewProjectionMatrix);
-
-    Vector3 ndcStart = ToNDC(start);
-    Vector3 ndcEnd = ToNDC(end);
-
-    Vector3 screenStart = Transform(ndcStart, viewportMatrix);
-    Vector3 screenEnd = Transform(ndcEnd, viewportMatrix);
-
     ///
     /// ↑更新処理ここまで
     ///
@@ -725,18 +600,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     ///
 
     DrawGrid(worldViewProjectionMatrix, viewportMatrix);
-
-    DrawTriangle(triangle, viewProjectionMatrix, viewportMatrix, WHITE);
-
-    if (IsCollision(triangle, segment)) {
-      Novice::DrawLine(
-          static_cast<int>(screenStart.x), static_cast<int>(screenStart.y),
-          static_cast<int>(screenEnd.x), static_cast<int>(screenEnd.y), RED);
-    } else {
-      Novice::DrawLine(
-          static_cast<int>(screenStart.x), static_cast<int>(screenStart.y),
-          static_cast<int>(screenEnd.x), static_cast<int>(screenEnd.y), WHITE);
-    }
 
     ///
     /// ↑描画処理ここまで
