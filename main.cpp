@@ -32,6 +32,11 @@ struct Camera {
   Vector3 translate;
 };
 
+struct AABB {
+  Vector3 min;
+  Vector3 max;
+};
+
 /// <summary>
 /// ベクトルの加算
 /// </summary>
@@ -436,6 +441,53 @@ Vector3 Cross(const Vector3 &v1, const Vector3 &v2) {
           v1.x * v2.y - v1.y * v2.x};
 }
 
+bool IsCollision(const AABB &aabb1, const AABB &aabb2) {
+  return (aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x) &&
+         (aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y) &&
+         (aabb1.min.z <= aabb2.max.z && aabb1.max.z >= aabb2.min.z);
+}
+
+/// <summary>
+/// カメラの操作
+/// </summary>
+/// <param name="camera"></param>
+/// <param name="keys"></param>
+/// <param name="wheel"></param>
+/// <param name="mouseX"></param>
+/// <param name="mouseY"></param>
+/// <param name="prevMouseX"></param>
+/// <param name="prevMouseY"></param>
+void UpdateCameraControl(Camera &camera, const char *keys, int wheel,
+                         int mouseX, int mouseY, int &prevMouseX,
+                         int &prevMouseY) {
+  if (keys[DIK_D])
+    camera.translate.x += 0.03f;
+  if (keys[DIK_A])
+    camera.translate.x -= 0.03f;
+  if (keys[DIK_W])
+    camera.translate.z += 0.03f;
+  if (keys[DIK_S])
+    camera.translate.z -= 0.03f;
+
+  float deltaX = static_cast<float>(mouseX - prevMouseX);
+  float deltaY = static_cast<float>(mouseY - prevMouseY);
+  prevMouseX = mouseX;
+  prevMouseY = mouseY;
+
+  if (Novice::IsPressMouse(1)) {
+    camera.rotate.y += deltaX * 0.005f;
+    camera.rotate.x += deltaY * 0.005f;
+    if (camera.rotate.x > 1.5f)
+      camera.rotate.x = 1.5f;
+    if (camera.rotate.x < -1.5f)
+      camera.rotate.x = -1.5f;
+  }
+
+  camera.scale.z += static_cast<float>(wheel) * 0.001f;
+  if (camera.scale.z < 0.120f)
+    camera.scale.z = 0.120f;
+}
+
 /// <summary>
 /// グリッド線の描画
 /// </summary>
@@ -499,35 +551,60 @@ void DrawGrid(const Matrix4x4 &viewProjectionMatrix,
   }
 }
 
-void UpdateCameraControl(Camera &camera, const char *keys, int wheel,
-                         int mouseX, int mouseY, int &prevMouseX,
-                         int &prevMouseY) {
-  if (keys[DIK_D])
-    camera.translate.x += 0.03f;
-  if (keys[DIK_A])
-    camera.translate.x -= 0.03f;
-  if (keys[DIK_W])
-    camera.translate.z += 0.03f;
-  if (keys[DIK_S])
-    camera.translate.z -= 0.03f;
+void DrawEdge(int index0, int index1, const Vector3 *screenVertices,
+              uint32_t color) {
+  Novice::DrawLine(static_cast<int>(screenVertices[index0].x),
+                   static_cast<int>(screenVertices[index0].y),
+                   static_cast<int>(screenVertices[index1].x),
+                   static_cast<int>(screenVertices[index1].y), color);
+}
 
-  float deltaX = static_cast<float>(mouseX - prevMouseX);
-  float deltaY = static_cast<float>(mouseY - prevMouseY);
-  prevMouseX = mouseX;
-  prevMouseY = mouseY;
+void DrawAABB(const AABB &aabb, const Matrix4x4 &viewProjectionMatrix,
+              const Matrix4x4 &viewportMatrix, uint32_t color) {
 
-  if (Novice::IsPressMouse(1)) {
-    camera.rotate.y += deltaX * 0.005f;
-    camera.rotate.x += deltaY * 0.005f;
-    if (camera.rotate.x > 1.5f)
-      camera.rotate.x = 1.5f;
-    if (camera.rotate.x < -1.5f)
-      camera.rotate.x = -1.5f;
+  // 8頂点を定義
+  Vector3 vertices[8] = {
+      {aabb.min.x, aabb.min.y, aabb.min.z},
+      {aabb.max.x, aabb.min.y, aabb.min.z},
+      {aabb.min.x, aabb.max.y, aabb.min.z},
+      {aabb.max.x, aabb.max.y, aabb.min.z},
+      {aabb.min.x, aabb.min.y, aabb.max.z},
+      {aabb.max.x, aabb.min.y, aabb.max.z},
+      {aabb.min.x, aabb.max.y, aabb.max.z},
+      {aabb.max.x, aabb.max.y, aabb.max.z},
+  };
+
+  // スクリーン座標に変換
+  Vector3 screenVertices[8];
+  for (int i = 0; i < 8; ++i) {
+    Vector4 clip;
+    clip = Transform4(vertices[i], viewProjectionMatrix); // ViewProjection変換
+    Vector3 ndc;
+    ndc = ToNDC(clip); // NDCに正規化
+    Vector3 screen;
+    screen = Transform(ndc, viewportMatrix); // ビューポート変換
+    screenVertices[i] = screen;
   }
 
-  camera.scale.z += static_cast<float>(wheel) * 0.001f;
-  if (camera.scale.z < 0.120f)
-    camera.scale.z = 0.120f;
+  // 線を描画する関数
+
+  // 底面
+  DrawEdge(0, 1, screenVertices, color);
+  DrawEdge(1, 3, screenVertices, color);
+  DrawEdge(3, 2, screenVertices, color);
+  DrawEdge(2, 0, screenVertices, color);
+
+  // 天面
+  DrawEdge(4, 5, screenVertices, color);
+  DrawEdge(5, 7, screenVertices, color);
+  DrawEdge(7, 6, screenVertices, color);
+  DrawEdge(6, 4, screenVertices, color);
+
+  // 側面
+  DrawEdge(0, 4, screenVertices, color);
+  DrawEdge(1, 5, screenVertices, color);
+  DrawEdge(3, 7, screenVertices, color);
+  DrawEdge(2, 6, screenVertices, color);
 }
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -556,6 +633,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   Vector3 rotate{0.0f, 0.0f, 0.0f};
   Vector3 translate{0.0f, 0.0f, 0.0f};
 
+  AABB aabb1{.min{-0.5f, -0.5f, -0.5f}, .max{0.0f, 0.0f, 0.0f}};
+  AABB aabb2{.min{0.2f, 0.2f, 0.2f}, .max{1.0f, 1.0f, 1.0f}};
+  uint32_t color = WHITE;
+
   // ウィンドウの×ボタンが押されるまでループ
   while (Novice::ProcessMessage() == 0) {
     // フレームの開始
@@ -570,6 +651,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     ///
 
     ImGui::Begin("Window");
+
+    ImGui::DragFloat3("AABB1.min", &aabb1.min.x, 0.01f);
+    ImGui::DragFloat3("AABB1.max", &aabb1.max.x, 0.01f);
+    ImGui::DragFloat3("AABB2.min", &aabb2.min.x, 0.01f);
+    ImGui::DragFloat3("AABB2.max", &aabb2.max.x, 0.01f);
 
     ImGui::End();
 
@@ -591,6 +677,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     Matrix4x4 viewportMatrix = MakeViewportMatrix(
         0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
+    if (IsCollision(aabb1, aabb2)) {
+      color = RED;
+    } else {
+      color = WHITE;
+    }
+
     ///
     /// ↑更新処理ここまで
     ///
@@ -600,6 +692,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     ///
 
     DrawGrid(worldViewProjectionMatrix, viewportMatrix);
+
+    DrawAABB(aabb1, worldViewProjectionMatrix, viewportMatrix, color);
+    DrawAABB(aabb2, worldViewProjectionMatrix, viewportMatrix, color);
 
     ///
     /// ↑描画処理ここまで
