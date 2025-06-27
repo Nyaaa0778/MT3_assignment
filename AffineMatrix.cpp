@@ -1,7 +1,5 @@
 #include "AffineMatrix.h"
 
-using namespace KamataEngine;
-
 /// <summary>
 /// 行列の積
 /// </summary>

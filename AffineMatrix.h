@@ -1,7 +1,15 @@
 #pragma once
-#include "math/Matrix4x4.h"
-#include "math/Vector3.h"
 #include <cmath>
+
+struct Vector3 {
+  float x;
+  float y;
+  float z;
+};
+
+struct Matrix4x4 {
+  float m[4][4];
+};
 
 /// <summary>
 /// 行列の積
@@ -9,36 +17,34 @@
 /// <param name="m1"></param>
 /// <param name="m2"></param>
 /// <returns></returns>
-KamataEngine::Matrix4x4 Multiply(const KamataEngine::Matrix4x4 &m1,
-                                 const KamataEngine::Matrix4x4 &m2);
+Matrix4x4 Multiply(const Matrix4x4 &m1, const Matrix4x4 &m2);
 
 /// <summary>
 /// 単位行列
 /// </summary>
 /// <returns></returns>
-KamataEngine::Matrix4x4 Identity();
+Matrix4x4 Identity();
 
 /// <summary>
 /// 拡縮行列
 /// </summary>
 /// <param name="scale"></param>
 /// <returns></returns>
-KamataEngine::Matrix4x4 MakeScaleMatrix(const KamataEngine::Vector3 &scale);
+Matrix4x4 MakeScaleMatrix(const Vector3 &scale);
 
 /// <summary>
 /// 回転行列
 /// </summary>
 /// <param name="rotate"></param>
 /// <returns></returns>
-KamataEngine::Matrix4x4 MakeRotateMatrix(const KamataEngine::Vector3 &rotate);
+Matrix4x4 MakeRotateMatrix(const Vector3 &rotate);
 
 /// <summary>
 /// 平行移動行列
 /// </summary>
 /// <param name="translate"></param>
 /// <returns></returns>
-KamataEngine::Matrix4x4
-MakeTranslateMatrix(const KamataEngine::Vector3 &translate);
+Matrix4x4 MakeTranslateMatrix(const Vector3 &translate);
 
 /// <summary>
 ///
@@ -47,7 +53,5 @@ MakeTranslateMatrix(const KamataEngine::Vector3 &translate);
 /// <param name="rotate"></param>
 /// <param name="translate"></param>
 /// <returns></returns>
-KamataEngine::Matrix4x4
-MakeAffineMatrix(const KamataEngine::Vector3 &scale,
-                 const KamataEngine::Vector3 &rotate,
-                 const KamataEngine::Vector3 &translate);
+Matrix4x4 MakeAffineMatrix(const Vector3 &scale, const Vector3 &rotate,
+                           const Vector3 &translate);
