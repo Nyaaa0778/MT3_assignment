@@ -1,8 +1,10 @@
 #include <Novice.h>
 #define _USE_MATH_DEFINES
-#include <cmath>
 #include <imgui.h>
 #include <stdint.h>
+#include "../../../KamataEngine/DirectXGame/math/Vector4.h"
+
+#include"AffineMatrix.h"
 
 const char kWindowTitle[] = "LE2B_27_ヤマダ_ナオ___確認課題";
 
