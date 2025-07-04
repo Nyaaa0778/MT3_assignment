@@ -1,12 +1,12 @@
 #include <Novice.h>
 #define _USE_MATH_DEFINES
+#include "../../../KamataEngine/DirectXGame/math/Vector4.h"
 #include <imgui.h>
 #include <stdint.h>
-#include "../../../KamataEngine/DirectXGame/math/Vector4.h"
 
-#include"AffineMatrix.h"
+#include "AffineMatrix.h"
 
-const char kWindowTitle[] = "LE2B_27_ヤマダ_ナオ___確認課題";
+const char kWindowTitle[] = "LE2B_27_ヤマダ_ナオ_3_2_確認課題";
 
 const float kWindowWidth = 1280.0f;
 const float kWindowHeight = 720.0f;
@@ -35,8 +35,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     /// ↓更新処理ここから
     ///
 
-
-
     ///
     /// ↑更新処理ここまで
     ///
@@ -44,8 +42,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     ///
     /// ↓描画処理ここから
     ///
-
-
 
     ///
     /// ↑描画処理ここまで
