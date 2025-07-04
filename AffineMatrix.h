@@ -1,7 +1,68 @@
 #pragma once
-#include "../../../KamataEngine/DirectXGame/math/Matrix4x4.h"
-#include "../../../KamataEngine/DirectXGame/math/Vector3.h"
 #include <cmath>
+
+struct Vector3 {
+  float x;
+  float y;
+  float z;
+
+  /// <summary>
+  /// 和の複合演算子
+  /// </summary>
+  /// <param name="v"></param>
+  /// <returns></returns>
+  Vector3 &operator+=(const Vector3 &v) {
+    x += v.x;
+    y += v.y;
+    z += v.z;
+
+    return *this;
+  }
+
+  /// <summary>
+  /// 差の複合演算子
+  /// </summary>
+  /// <param name="v"></param>
+  /// <returns></returns>
+  Vector3 &operator-=(const Vector3 &v) {
+    
+    x -= v.x;
+    y -= v.y;
+    z -= v.z;
+              
+    return *this;
+  }
+
+  /// <summary>
+  /// 積の複合演算子
+  /// </summary>
+  /// <param name="v"></param>
+  /// <returns></returns>
+  Vector3 &operator*=(const Vector3 &v) {
+    x *= v.x;
+    y *= v.y;
+    z *= v.z;
+
+    return *this;
+  }
+
+  /// <summary>
+  /// 商の複合演算子
+  /// </summary>
+  /// <param name="v"></param>
+  /// <returns></returns>
+  Vector3 &operator/=(const Vector3 &v) {
+    x /= v.x;
+    y /= v.y;
+    z /= v.z;
+
+    return *this;
+  }
+};
+
+struct Matrix4x4 {
+  float m[4][4];
+};
 
 /// <summary>
 /// 行列の積
