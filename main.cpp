@@ -9,10 +9,10 @@
 const char kWindowTitle[] = "LE2B_27_ヤマダ_ナオ_4_0_確認課題";
 
 struct Spring {
-  Vector3 anchor;      // 固定された端
-  float naturalLength; // 自然長
-  float stiffness;     // ばね定数
-  float dampingCoefficient;//減衰係数
+  Vector3 anchor;           // 固定された端
+  float naturalLength;      // 自然長
+  float stiffness;          // ばね定数
+  float dampingCoefficient; // 減衰係数
 };
 
 struct Ball {
@@ -576,7 +576,6 @@ void DrawSpringLine(const Spring &spring, const Ball &ball,
   );
 }
 
-
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -591,8 +590,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   Spring spring = {
       {0.0f, 0.0f, 0.0f}, // 固定された端の位置
       1.0f,               // 自然長
-      100.0f,              // ばね定数
-      2.0f//減衰係数
+      100.0f,             // ばね定数
+      2.0f                // 減衰係数
   };
 
   Ball ball = {
@@ -600,7 +599,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       {0.0f, 0.0f, 0.0f}, // 速度
       {0.0f, 0.0f, 0.0f}, // 加速度
       2.0f,               // 質量
-      8.0f,              // 半径
+      8.0f,               // 半径
       BLUE                // 色
   };
 
@@ -621,6 +620,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
   float deltaTime = 1.0f / 60.0f;
 
+  int isMoving = false;
+
   // ウィンドウの×ボタンが押されるまでループ
   while (Novice::ProcessMessage() == 0) {
     // フレームの開始
@@ -634,24 +635,36 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     /// ↓更新処理ここから
     ///
 
-    Vector3 diff = ball.position - spring.anchor;
-    float length = Length(diff);
-    if (length != 0.0f) {
-      Vector3 direction = Normalize(diff);
-      Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
-      Vector3 displacement = length * (ball.position - restPosition);
-      Vector3 restoringForce = -spring.stiffness * displacement;
+    ImGui::Begin("Window");
 
-      //減衰力
-      Vector3 dampingForce = -spring.dampingCoefficient * ball.velocity;
-      //力が減衰する
-      Vector3 force = restoringForce + dampingForce;
-
-      ball.acceleration = force / ball.mass;
+    if (ImGui::Button("start")) {
+      if (!isMoving) {
+        isMoving = true;
+      }
     }
 
-    ball.velocity += ball.acceleration * deltaTime;
-    ball.position += ball.velocity * deltaTime;
+    ImGui::End();
+
+    if (isMoving) {
+      Vector3 diff = ball.position - spring.anchor;
+      float length = Length(diff);
+      if (length != 0.0f) {
+        Vector3 direction = Normalize(diff);
+        Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
+        Vector3 displacement = length * (ball.position - restPosition);
+        Vector3 restoringForce = -spring.stiffness * displacement;
+
+        // 減衰力
+        Vector3 dampingForce = -spring.dampingCoefficient * ball.velocity;
+        // 力が減衰する
+        Vector3 force = restoringForce + dampingForce;
+
+        ball.acceleration = force / ball.mass;
+      }
+
+      ball.velocity += ball.acceleration * deltaTime;
+      ball.position += ball.velocity * deltaTime;
+    }
 
     Novice::GetMousePosition(&mouseX, &mouseY);
     wheel = Novice::GetWheel();
@@ -680,13 +693,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     /// ↓描画処理ここから
     ///
 
-
     DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-    //ばね
+    // ばね
     DrawSpringLine(spring, ball, worldViewProjectionMatrix, viewportMatrix);
 
-    //ばね先のボール
+    // ばね先のボール
     DrawBall(ball, worldViewProjectionMatrix, viewportMatrix);
 
     ///
