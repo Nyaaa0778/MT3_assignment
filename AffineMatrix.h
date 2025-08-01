@@ -1,15 +1,7 @@
 #pragma once
-#include "../../../KamataEngine/DirectXGame/math/Matrix4x4.h"
-#include "../../../KamataEngine/DirectXGame/math/Vector3.h"
+#include"MathUtility.h"
+#define _USE_MATH_DEFINES
 #include <cmath>
-
-/// <summary>
-/// 行列の積
-/// </summary>
-/// <param name="m1"></param>
-/// <param name="m2"></param>
-/// <returns></returns>
-Matrix4x4 Multiply(const Matrix4x4 &m1, const Matrix4x4 &m2);
 
 /// <summary>
 /// 単位行列

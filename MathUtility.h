@@ -111,6 +111,33 @@ Vector3 Subtract(const Vector3 v1, const Vector3 &v2);
 /// <returns></returns>
 Vector3 Multiply(float s, const Vector3 &v);
 
+// <summary>
+/// 3次元ベクトルの正規化
+/// </summary>
+/// <param name="vector">正規化したいベクトル</param>
+/// <returns>正規化されたベクトル</returns>
+Vector3 Normalize(const Vector3 &v);
+/// <summary>
+/// 長さ
+/// </summary>
+/// <param name="v"></param>
+/// <returns></returns>
+float Length(const Vector3 &v);
+/// <summary>
+/// 内積
+/// </summary>
+/// <param name="v1"></param>
+/// <param name="v2"></param>
+/// <returns></returns>
+float Dot(const Vector3 &v1, const Vector3 &v2);
+/// <summary>
+/// 外積
+/// </summary>
+/// <param name="v1"></param>
+/// <param name="v2"></param>
+/// <returns></returns>
+Vector3 Cross(const Vector3 &v1, const Vector3 &v2); 
+
 /// ========================================
 /// 演算子のオーバーロード
 /// ========================================

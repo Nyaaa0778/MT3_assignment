@@ -1,4 +1,5 @@
 ﻿#include "MathUtility.h"
+#include<cmath>
 
 /// <summary>
 /// 行列の和
@@ -100,6 +101,52 @@ Vector3 Multiply(float s, const Vector3 &v) {
   result.z = v.z * s;
 
   return result;
+}
+
+// <summary>
+/// 3次元ベクトルの正規化
+/// </summary>
+/// <param name="vector">正規化したいベクトル</param>
+/// <returns>正規化されたベクトル</returns>
+Vector3 Normalize(const Vector3 &v) {
+  float length = Length(v);
+
+  if (length == 0.0f) {
+    return {0.0f, 0.0f, 0.0f}; // 零ベクトルを返す
+  }
+
+  return v / length;
+}
+
+/// <summary>
+/// 長さ
+/// </summary>
+/// <param name="v"></param>
+/// <returns></returns>
+float Length(const Vector3 &v) {
+  return std::sqrtf(std::powf(v.x, 2) + std::powf(v.y, 2) + std::powf(v.z, 2));
+}
+
+
+/// <summary>
+/// 内積
+/// </summary>
+/// <param name="v1"></param>
+/// <param name="v2"></param>
+/// <returns></returns>
+float Dot(const Vector3& v1, const Vector3& v2) {
+  return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+/// <summary>
+/// 外積
+/// </summary>
+/// <param name="v1"></param>
+/// <param name="v2"></param>
+/// <returns></returns>
+Vector3 Cross(const Vector3& v1, const Vector3& v2) {
+  return {v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
+          v1.x * v2.y - v1.y * v2.x};
 }
 
 /// ========================================
